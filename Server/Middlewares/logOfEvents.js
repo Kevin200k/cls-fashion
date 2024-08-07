@@ -1,28 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 
-// Middleware to log events
-const logEvent = (req, res, next) => {
-  const logsDir = path.join(__dirname, '..', 'logs');
+const logEvent = (message) => {
+  const logsDir = path.join(process.cwd(), 'logs'); // Use process.cwd() to get the current working directory
   
-  // Create logs directory if it doesn't exist
   if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir);
   }
 
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
+  const dateStr = now.toISOString().split('T')[0]; 
   const logFilePath = path.join(logsDir, `${dateStr}.txt`);
 
-  const logMessage = `${now.toISOString()} - ${req.method} ${req.url}\n`;
-
+  const logMessage = `${now.toISOString()} - ${message}\n`;
+  
+  // Append the log message to the file
   fs.appendFile(logFilePath, logMessage, (err) => {
     if (err) {
       console.error('Failed to write log:', err);
     }
   });
-
-  next();
 };
 
 export default logEvent;
