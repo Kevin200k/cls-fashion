@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Middleware to log events
-const logOfEvents = (req, res, next) => {
+const logEvent = (req, res, next) => {
   const logsDir = path.join(__dirname, '..', 'logs');
   
   // Create logs directory if it doesn't exist
@@ -25,4 +25,4 @@ const logOfEvents = (req, res, next) => {
   next();
 };
 
-export default logOfEvents;
+export default logEvent;

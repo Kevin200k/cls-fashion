@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../Models/userModel.js';
+import logEvent from '../Middlewares/logOfEvents.js';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const generateSignToken = (_id, email, role) => {
       const userExists = await User.findOne({ email });
   
       if (userExists) {
+        logEvent(`Registration attempt failed for ${email}: User already exists`);
         return res.status(400).json({ message: 'User already exists' });
       }
   
@@ -35,6 +37,7 @@ const generateSignToken = (_id, email, role) => {
       });
   
       if (user) {
+        logEvent(`User registered successfully: ${user._id}`);
         res.status(201).json({
           _id: user._id,
           name: user.name,
@@ -47,6 +50,7 @@ const generateSignToken = (_id, email, role) => {
         res.status(400).json({ message: 'Invalid user data' });
       }
     } catch (err) {
+        logEvent(`Error during registration for ${email}: ${err.message}`);
         next(err);
       }
   });
@@ -60,6 +64,7 @@ const generateSignToken = (_id, email, role) => {
   
       // console.log('user', user)
       if (user && (await user.comparePassword(password))) {
+        logEvent(`User logged in successfully: ${user._id}`);
         res.json({
           _id: user._id,
           name: user.name,
@@ -68,9 +73,11 @@ const generateSignToken = (_id, email, role) => {
   
         });
       } else {
+        logEvent(`Login attempt failed for ${email}: Invalid email or password`);
         res.status(401).json({ message: 'Invalid email or password' });
       }
     } catch (err) {
+        logEvent(`Error during login for ${email}: ${err.message}`);
         next(err);
       }
   });
