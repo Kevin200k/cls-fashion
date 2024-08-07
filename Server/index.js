@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './config.env' });
 
-// import userRoutes from './Routes/userRoutes.js';
+import userRoutes from './Routes/userRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 7800;
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(cors());
 app.use(express.json());
 
-// app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/user', userRoutes);
 
 app.use('/', (req, res) => {
   res.send('This is the default response');

@@ -1,13 +1,11 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bycryptjs';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, required: true, auto: true },
     name: { type: String, required: true },
     email: { type: String, unique: true, required: [true, 'Please enter email'], lowercase: true, trim: true },
     role: { type: String, required: true, default: 'user' },
-    address: { type: String, required: true },
-    phoneNumber: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now, immutable: true, required: true },
     password: { type: String, required: [true, 'Please enter password'], minlength: [8, 'password must be at least 8 character'], select: false},
 })
