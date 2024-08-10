@@ -2,6 +2,8 @@ import express from 'express';
 import User from '../Models/userModel.js';
 import OTP from '../Models/otpModel.js';
 import sendEmail from '../Utils/email.js';
+import protect from '../Middlewares/authMiddleware.js'
+import logEvent from '../Middlewares/logOfEvents.js'
 
 const router = express.Router();
 
@@ -9,6 +11,7 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// router.post('/send-otp/:email', protect, async (req, res, next) => {
 router.post('/send-otp/:email', async (req, res, next) => {
     const { email } = req.params;
 
@@ -16,6 +19,7 @@ router.post('/send-otp/:email', async (req, res, next) => {
         const user = await User.findOne({ email: email });
 
         if (!user) {
+            logEvent(`${email} does not exit`)
             return res.status(401).json({ message: "User does not exist" });
         }
 
@@ -49,17 +53,18 @@ router.post('/send-otp/:email', async (req, res, next) => {
 
         // Encrypt the OTP after it has been sent
         await otpRecord.encryptOtp();
-
+        logEvent(`OTP has been sent to ${user._id}`)
         res.status(200).json({ message: "OTP has been sent to your email address." });
 
     } catch (err) {
-        console.error('Error sending OTP:', err);
+        logEvent(`OTP could not be sent to ${user._id}`)
         res.status(500).json({ message: "An error occurred while sending the OTP. Please try again later." });
         next(err);
     }
 });
 
 
+// router.post('/verify-otp/:email/:otp', protect, async (req, res, next) => {
 router.post('/verify-otp/:email/:otp', async (req, res, next) => {
     const { email, otp } = req.params;
 
@@ -79,6 +84,7 @@ router.post('/verify-otp/:email/:otp', async (req, res, next) => {
         await OTP.findOneAndDelete({ email: email });
         await User.findOneAndUpdate({ email: email }, { isVerified: true });
 
+        logEvent(`${email} has been verified`)
         res.status(200).json({ message: "Your account has been verified successfully." });
 
     } catch (err) {

@@ -28,7 +28,7 @@ router.post('/users', async (req, res, next) => {
 
     // Create a new user
     const user = await User.create({ _id, name, email, password });
-    logEvent(`User ${_id} has successfully registered`)
+    logEvent(`User ${user._id} has successfully registered`)
     res.status(201).json({
       message: 'Registration successful! A confirmation email has been sent to your inbox.',
       _id: user._id,
