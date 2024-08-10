@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, required: true, default: 'user' },
     createdAt: { type: Date, default: Date.now, immutable: true, required: true },
     password: { type: String, required: [true, 'Please enter password'], minlength: [8, 'password must be at least 8 character'], select: false},
-    verifiedAccount: { type: Boolean, required: true, default: false }
+    isVerified: { type: Boolean, required: true, default: false }
 })
 
 userSchema.pre('save', async function(next) {
