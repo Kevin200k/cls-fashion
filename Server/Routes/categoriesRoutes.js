@@ -1,5 +1,5 @@
 import express from 'express';
-import Categories from '../Models/categoriesModels';
+import Categories from '../Models/categoriesModel.js';
 import protect from '../Middlewares/authMiddleware.js'
 import requireVerification from '../Middlewares/requireVerification.js'
 import Restrict from '../Middlewares/restrict.js';
@@ -11,6 +11,11 @@ router.post('/categories', protect, requireVerification, Restrict('admin'), asyn
     const { name, description } = req.body;
 
     try{
+        const categoryExists = await Categories.findOne({name: name});
+        
+        if(categoryExists){
+            res.status(401).json({ message: "The category already exists" })
+        }
         const category = await Categories.create({ name, description });
 
         if(category){
@@ -21,6 +26,19 @@ router.post('/categories', protect, requireVerification, Restrict('admin'), asyn
     catch(err){
         next(err)
     }
-} )
+})
+
+router.get('/categories', async(req, res, next) => {
+    try{
+        const categories = await Categories.find().select('-__v')
+
+        if(categories){
+            res.status(201).json(categories)
+        }
+    }
+    catch(err){
+        next(err)
+    }
+})
 
 export default router
