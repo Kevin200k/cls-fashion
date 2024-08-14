@@ -1,64 +1,69 @@
 import express from 'express';
 import Categories from '../Models/categoriesModel.js';
-import protect from '../Middlewares/authMiddleware.js'
-import requireVerification from '../Middlewares/requireVerification.js'
+import protect from '../Middlewares/authMiddleware.js';
+import requireVerification from '../Middlewares/requireVerification.js';
 import Restrict from '../Middlewares/restrict.js';
-import logEvent from '../Middlewares/logOfEvents.js'
+import logEvent from '../Middlewares/logOfEvents.js';
 
 const router = express.Router();
 
-router.post('/categories', protect, requireVerification, Restrict('admin'), async(req, res, next) => {
+// Route to create a category
+router.post('/categories', protect, requireVerification, Restrict('admin'), async (req, res, next) => {
     const { name, description } = req.body;
 
-    try{
-        const categoryExists = await Categories.findOne({name: name});
-        
-        if(categoryExists){
-            res.status(401).json({ message: "The category already exists" })
+    try {
+        const categoryExists = await Categories.findOne({ name: name });
+
+        if (categoryExists) {
+            return res.status(409).json({ message: "Category already exists. Please choose a different name." });
         }
+
         const category = await Categories.create({ name, description });
 
-        if(category){
-            logEvent(`category ${category._id} has been created`);
-            res.status(201).json({message: "Category created successfully"})
-        }
-    }
-    catch(err){
-        next(err)
-    }
-})
-
-router.get('/categories', async(req, res, next) => {
-    try{
-        const categories = await Categories.find().select('-__v')
-
-        if(categories){
-            res.status(201).json(categories)
-        }
-    }
-    catch(err){
-        next(err)
-    }
-})
-
-// router.delete('/categories/:categoriesId', protect, requireVerification, Restrict('admin'), async(req, res, next) => {
-router.delete('/categories/:categoriesId', async(req, res, next) => {
-    const { categoriesId } = req.body;
-
-    try{
-        const category = await Categories.find({_id: categoriesId});
-        if(!category){
-            res.status(401).json({ message: "The category does not exist" })
+        if (category) {
+            logEvent(`Category ${category._id} has been created.`);
+            return res.status(201).json({ message: "Category created successfully." });
         }
 
-        await Categories.findOneAndDelete({_id: categoriesId})
-        logEvent(`Categories ${categoriesId} has been deleted`);
-        res.status(201).json({message: "Category successfully deleted"})
+        // Fallback if category creation failed for any unknown reason
+        res.status(500).json({ message: "Failed to create category. Please try again later." });
+    } catch (err) {
+        next(err);
     }
-    catch(err){
-        next(err)
+});
+
+// Route to get all categories
+router.get('/categories', async (req, res, next) => {
+    try {
+        const categories = await Categories.find().select('-__v');
+
+        if (categories.length > 0) {
+            return res.status(200).json(categories);
+        } else {
+            return res.status(404).json({ message: "No categories found." });
+        }
+    } catch (err) {
+        next(err);
     }
-})
+});
 
+// Route to delete a category
+router.delete('/categories/:categoryId', protect, requireVerification, Restrict('admin'), async (req, res, next) => {
+    const { categoryId } = req.params;
 
-export default router
+    try {
+        const category = await Categories.findById(categoryId);
+
+        if (!category) {
+            return res.status(404).json({ message: "Category not found." });
+        }
+
+        await Categories.findByIdAndDelete(categoryId);
+        logEvent(`Category ${categoryId} has been deleted.`);
+        res.status(200).json({ message: "Category deleted successfully." });
+    } catch (err) {
+        next(err);
+    }
+});
+
+export default router;
